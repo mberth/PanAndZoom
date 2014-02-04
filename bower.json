@@ -1,0 +1,13 @@
+{
+    "name": "panandzoom",
+    "private": true,
+    "dependencies": {
+        "sass-bootstrap": "~3.0.0",
+        "modernizr": "~2.6.2",
+        "jquery": "~1.10.2",
+        "requirejs": "~2.1.8",
+        "paper": "0.9.15",
+        "jquery-mousewheel": "~3.1.9"
+    },
+    "devDependencies": {}
+}

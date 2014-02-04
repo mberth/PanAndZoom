@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>pan_and_zoom.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          <h1>pan_and_zoom.coffee</h1>
+        
+
+        
+          <div class="toc">
+            <h3>Table of Contents</h3>
+            <ol>
+              
+                
+                <li>
+                  <a class="source" href="main.html">
+                    main.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
+                  <a class="source" href="pan_and_zoom.html">
+                    pan_and_zoom.coffee
+                  </a>
+                </li>
+              
+            </ol>
+          </div>
+        
+      </div>
+
+      
+        
+        <h2 id="pan-and-zoom">Pan and Zoom</h2>
+
+        
+      
+        
+        <p class="lead">Smooth panning and zooming in <a href="http://paperjs.org/">paper.js</a></p>
+
+        
+      
+        
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
+
+        
+      
+        
+        <p>Here is a straight forward implementation for panning and zooming in a <a href="http://paperjs.org/">paper.js</a> drawing.
+Try it: Shift-mousewheel moves the box around,
+Alt-mousewheel zooms in and out.</p>
+
+        
+      
+        
+        <p><canvas id="paper1" width="600" height="300" style="background: gray;"></canvas></p>
+<script data-main="../scripts/main" src="../../bower_components/requirejs/require.js"></script>
+
+        
+      
+        
+        <p>Now try to zoom in on the circle: the circle moves away from the mouse pointer
+when zooming in. This is a result of the simple zoom algorithm we use here. You would expect
+the drawing to zoom in around your mouse pointer, i.e. that the zoom has the point under
+the mouse as a fixed point.</p>
+
+        
+      
+        
+        <p>By default, paper.js zooms in around the center of the view. You can try this by
+placing the mouse on top of the small square (do not pan around, that will
+change the center of the view).</p>
+
+        
+      
+        
+        <p>The simple implementation works like this: get the mousewheel movements from the
+<a href="https://github.com/brandonaaron/jquery-mousewheel">jQuery Mouse Wheel Plugin</a>.
+Then use <code>paper.view.center = (x,y)</code> to move around, and
+<code>paper.view.zoom = z</code> to zoom in and out (see the paper.js docs for
+<a href="http://paperjs.org/reference/view/#zoom">View.zoom</a> and
+<a href="http://paperjs.org/reference/view/#center">View.center</a>).</p>
+
+        
+      
+        
+        
+        
+          <div class='highlight'><pre>define [<span class="hljs-string">'paper'</span>, <span class="hljs-string">'jquery-mousewheel'</span>], <span class="hljs-function"><span class="hljs-params">(paper)</span> -&gt;</span></pre></div>
+        
+      
+        
+        <h2 id="simple-pan-and-zoom">Simple Pan and Zoom</h2>
+
+        
+      
+        
+        
+        
+      
+        
+        <p><a name="SimplePanAndZoom"></a> A simple implementation of pan and zoom: just change the
+zoom factor or the view center.</p>
+
+        
+          <div class='highlight'><pre>  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">SimplePanAndZoom</span></span></pre></div>
+        
+      
+        
+        <p>The zoom and pan logic is extracted into functions that
+produce the new zoom (or center) given the old zoom (or center) and mouse wheel deltas.</p>
+
+        
+      
+        
+        <p>Compute the new zoom factor from the old
+zoom factor and some delta that is given to us by the mousewheel plugin.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-attribute">changeZoom</span>: <span class="hljs-function"><span class="hljs-params">(oldZoom, delta)</span> -&gt;</span>
+      factor = <span class="hljs-number">1.05</span>
+      <span class="hljs-keyword">if</span> delta &lt; <span class="hljs-number">0</span>
+        <span class="hljs-keyword">return</span> oldZoom * factor
+      <span class="hljs-keyword">if</span> delta &gt; <span class="hljs-number">0</span>
+        <span class="hljs-keyword">return</span> oldZoom / factor
+      oldZoom</pre></div>
+        
+      
+        
+        <p>Compute the new center from old center and the delta given by the mousewheel plugin.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-attribute">changeCenter</span>: <span class="hljs-function"><span class="hljs-params">(oldCenter, deltaX, deltaY, factor)</span> -&gt;</span>
+      offset = <span class="hljs-keyword">new</span> paper.Point deltaX, -deltaY
+      offset = offset.multiply factor
+      oldCenter.add offset</pre></div>
+        
+      
+        
+        <h2 id="-a-name-example1-a-example-1"><a name="Example1"></a>Example 1</h2>
+
+        
+      
+        
+        
+        
+      
+        
+        <p>Here is the code that produces the example above. Feel free to skip ahead to
+the <a href="#StableZoom">stable zoom</a>.</p>
+
+        
+      
+        
+        <p>Draw a grid with major and minor lines</p>
+
+        
+          <div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-title">drawGrid</span> = <span class="hljs-params">(width, height)</span> -&gt;</span>
+    <span class="hljs-keyword">new</span> paper.Path.Rectangle <span class="hljs-attribute">from</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>], <span class="hljs-attribute">to</span>: [width, height], <span class="hljs-attribute">fillColor</span>: <span class="hljs-string">'white'</span></pre></div>
+        
+      
+        
+        <p>Style: thick major grid lines, thin minor lines</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-function"><span class="hljs-title">lineStyle</span> = <span class="hljs-params">(coord)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> coord % <span class="hljs-number">50</span> == <span class="hljs-number">0</span>
+        {<span class="hljs-attribute">strokeColor</span>: <span class="hljs-string">'lightblue'</span>, <span class="hljs-attribute">strokeWidth</span>: <span class="hljs-number">2</span>}
+      <span class="hljs-keyword">else</span>
+        {<span class="hljs-attribute">strokeColor</span>: <span class="hljs-string">'lightblue'</span>, <span class="hljs-attribute">strokeWidth</span>: <span class="hljs-number">1</span>}</pre></div>
+        
+      
+        
+        <p>Draw vertical lines</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.width] <span class="hljs-keyword">by</span> <span class="hljs-number">10</span>
+      line = <span class="hljs-keyword">new</span> paper.Path.Line <span class="hljs-attribute">segments</span>: [[x, <span class="hljs-number">0</span>], [x, height]]
+      line.set lineStyle(x)</pre></div>
+        
+      
+        
+        <p>Draw horizontal lines</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-keyword">for</span> y <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>.height] <span class="hljs-keyword">by</span> <span class="hljs-number">10</span>
+      line = <span class="hljs-keyword">new</span> paper.Path.Line <span class="hljs-attribute">segments</span>: [[<span class="hljs-number">0</span>, y], [width, y]]
+      line.set lineStyle(y)
+
+  <span class="hljs-function"><span class="hljs-title">example1</span> = <span class="hljs-params">(canvasID)</span> -&gt;</span></pre></div>
+        
+      
+        
+        <p>Setup the <code>paper</code> object</p>
+
+        
+          <div class='highlight'><pre>    canvas = <span class="hljs-built_in">document</span>.getElementById(canvasID)
+    paper.setup canvas</pre></div>
+        
+      
+        
+        <p>Remember the current view so we can access it in event handlers.</p>
+
+        
+          <div class='highlight'><pre>    view = paper.view</pre></div>
+        
+      
+        
+        <p>Create a grid and a circle.</p>
+
+        
+          <div class='highlight'><pre>    width = <span class="hljs-number">600</span>
+    height = <span class="hljs-number">300</span>
+    drawGrid width, height
+    <span class="hljs-keyword">new</span> paper.Path.Circle <span class="hljs-attribute">center</span>: [<span class="hljs-number">100</span>, <span class="hljs-number">100</span>], <span class="hljs-attribute">radius</span>: <span class="hljs-number">20</span>, <span class="hljs-attribute">fillColor</span>: <span class="hljs-string">'green'</span>
+    box = <span class="hljs-keyword">new</span> paper.Path.Rectangle <span class="hljs-attribute">from</span>: [<span class="hljs-number">0</span>,<span class="hljs-number">0</span>], <span class="hljs-attribute">to</span>: [<span class="hljs-number">10</span>,<span class="hljs-number">10</span>], <span class="hljs-attribute">fillColor</span>: <span class="hljs-string">'gray'</span>
+    box.position = view.center
+
+
+    panAndZoom = <span class="hljs-keyword">new</span> SimplePanAndZoom()</pre></div>
+        
+      
+        
+        <p>We use the jquery-mousewheel plugin to get the events.</p>
+
+        
+          <div class='highlight'><pre>    $<span class="hljs-function"><span class="hljs-params">(<span class="hljs-string">"#<span class="hljs-subst">#{canvasID}</span>"</span>)</span>.<span class="hljs-title">mousewheel</span> <span class="hljs-params">(event)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> event.shiftKey
+        view.center = panAndZoom.changeCenter view.center, event.deltaX, event.deltaY, event.deltaFactor
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> event.altKey
+        view.zoom = panAndZoom.changeZoom view.zoom, event.deltaY
+      event.preventDefault()</pre></div>
+        
+      
+        
+        <p>When using paper.js from javascript directly, you have to call
+<code>view.draw()</code> to draw the scene.</p>
+
+        
+          <div class='highlight'><pre>    view.draw()</pre></div>
+        
+      
+        
+        <h2 id="-a-name-stablezoom-a-stable-zoom"><a name="StableZoom"></a>Stable Zoom</h2>
+
+        
+      
+        
+        
+        
+      
+        
+        <p>Try zooming in on the circle (again Shift-mousewheel moves the box around,
+Alt-mousewheel zooms in and out).</p>
+
+        
+      
+        
+        <canvas id="paper2" width="600" height="300" style="background: gray;"></canvas>
+
+        
+      
+        
+        <p>Now try to zoom in on the circle: the drawing zooms in around your mouse pointer.</p>
+
+        
+      
+        
+        <p>Let’s derive the formula for this systematically.
+The normal paper.js zoom has the center as a fixed point.
+Write the normal zoom transform as some function $Z$ and call the view’s center point $c$.
+Then we have
+$$Z(c) = c$$
+We want to apply the normal zoom and then correct it by a translation that makes sure
+the point under the mouse $p$ stays where it is.
+We are looking for a translation vector $a$ such that
+$$Z(p) + a = p$$
+This means that the correction has to be $a = p - Z(p)$.</p>
+
+        
+      
+        
+        <p>How do we get a formula for $Z$? It is a scaling that has the view center $c$ as a fixed point.
+This is done by shifting $c$ to the origin, then scaling by a factor $\beta$ then shifting back to $c$:
+$$Z(x) = \beta \cdot (x - c) + c$$
+You can check that indeed $Z(c) = c$.</p>
+
+        
+      
+        
+        <p>With that our correction becomes
+$$a = p - Z(p) = p - \beta \cdot (p - c) - c$$</p>
+
+        
+          <div class='highlight'><pre>
+
+  <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">StableZoom</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">SimplePanAndZoom</span></span></pre></div>
+        
+      
+        
+        <p>Compute the new zoom factor such that a given fixedPoint $p$ is unchanged.
+$c$ is the old view center.</p>
+
+        
+          <div class='highlight'><pre>    <span class="hljs-attribute">changeZoom</span>: <span class="hljs-function"><span class="hljs-params">(oldZoom, delta, c, p)</span> -&gt;</span>
+      newZoom = <span class="hljs-keyword">super</span> oldZoom, delta
+      beta = oldZoom / newZoom
+      pc = p.subtract c
+      a = p.subtract(pc.multiply(beta)).subtract c
+      [newZoom, a]</pre></div>
+        
+      
+        
+        <h2 id="example-2">Example 2</h2>
+
+        
+      
+        
+        
+        
+          <div class='highlight'><pre>
+  <span class="hljs-function"><span class="hljs-title">example2</span> = <span class="hljs-params">(canvasID)</span> -&gt;</span></pre></div>
+        
+      
+        
+        <p>Setup the <code>paper</code> object</p>
+
+        
+          <div class='highlight'><pre>    canvas = <span class="hljs-built_in">document</span>.getElementById(canvasID)
+    paper.setup canvas</pre></div>
+        
+      
+        
+        <p>Remember the current view so we can access it in event handlers.</p>
+
+        
+          <div class='highlight'><pre>    view = paper.view</pre></div>
+        
+      
+        
+        <p>Create a grid and a circle.</p>
+
+        
+          <div class='highlight'><pre>    width = <span class="hljs-number">600</span>
+    height = <span class="hljs-number">300</span>
+    drawGrid width, height
+    <span class="hljs-keyword">new</span> paper.Path.Circle <span class="hljs-attribute">center</span>: [<span class="hljs-number">100</span>, <span class="hljs-number">100</span>], <span class="hljs-attribute">radius</span>: <span class="hljs-number">20</span>, <span class="hljs-attribute">fillColor</span>: <span class="hljs-string">'teal'</span>
+
+    panAndZoom = <span class="hljs-keyword">new</span> StableZoom()</pre></div>
+        
+      
+        
+        <p>We use the jquery-mousewheel plugin to get the events.</p>
+
+        
+          <div class='highlight'><pre>    $<span class="hljs-function"><span class="hljs-params">(<span class="hljs-string">"#<span class="hljs-subst">#{canvasID}</span>"</span>)</span>.<span class="hljs-title">mousewheel</span> <span class="hljs-params">(event)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> event.shiftKey
+        view.center = panAndZoom.changeCenter view.center, event.deltaX, event.deltaY, event.deltaFactor
+        event.preventDefault()
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> event.altKey
+        mousePosition = <span class="hljs-keyword">new</span> paper.Point event.offsetX, event.offsetY</pre></div>
+        
+      
+        
+        <p><code>viewToProject()</code> is an undocumented paper.js function that converts mouse coordinates
+to project coordinates. When you use the
+<a href="http://paperjs.org/tutorials/interaction/creating-mouse-tools/">paper.js event handling</a>
+this conversion is already done for you.</p>
+
+        
+          <div class='highlight'><pre>        viewPosition = view.viewToProject(mousePosition)
+        <span class="hljs-keyword">new</span> paper.Path.Circle <span class="hljs-attribute">center</span>: viewPosition, <span class="hljs-attribute">radius</span>: <span class="hljs-number">5</span>, <span class="hljs-attribute">fillColor</span>: <span class="hljs-string">"red"</span>, <span class="hljs-attribute">opacity</span>: <span class="hljs-number">0.01</span>
+        [newZoom, offset] = panAndZoom.changeZoom view.zoom, event.deltaY, view.center, viewPosition
+        view.zoom = newZoom
+        view.center = view.center.add offset
+        event.preventDefault()
+        view.draw()
+
+    $<span class="hljs-function"><span class="hljs-params">(<span class="hljs-string">"#<span class="hljs-subst">#{canvasID}</span>"</span>)</span>.<span class="hljs-title">click</span> <span class="hljs-params">(event)</span> -&gt;</span>
+      mousePosition = <span class="hljs-keyword">new</span> paper.Point event.offsetX, event.offsetY
+      viewPosition = view.viewToProject(mousePosition)
+      <span class="hljs-built_in">console</span>.log event
+      <span class="hljs-built_in">console</span>.log mousePosition
+      <span class="hljs-built_in">console</span>.log viewPosition</pre></div>
+        
+      
+        
+        <p>When using paper.js from javascript directly, you have to call
+<code>view.draw()</code> to draw the scene.</p>
+
+        
+          <div class='highlight'><pre>    view.draw()
+
+
+  {<span class="hljs-attribute">example1</span>: example1, <span class="hljs-attribute">example2</span>: example2}</pre></div>
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>

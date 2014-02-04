@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>main.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          <h1>main.coffee</h1>
+        
+
+        
+          <div class="toc">
+            <h3>Table of Contents</h3>
+            <ol>
+              
+                
+                <li>
+                  <a class="source" href="main.html">
+                    main.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
+                  <a class="source" href="pan_and_zoom.html">
+                    pan_and_zoom.coffee
+                  </a>
+                </li>
+              
+            </ol>
+          </div>
+        
+      </div>
+
+      
+        
+        
+        
+          <div class='highlight'><pre><span class="hljs-built_in">require</span>.config({
+  <span class="hljs-attribute">paths</span>: {
+    <span class="hljs-string">'jquery'</span>: <span class="hljs-string">'../bower_components/jquery/jquery'</span>,
+    <span class="hljs-string">'jquery-mousewheel'</span>: <span class="hljs-string">'../../bower_components/jquery-mousewheel/jquery.mousewheel'</span>,
+    <span class="hljs-string">'paper'</span>: <span class="hljs-string">'../../bower_components/paper/dist/paper'</span>
+    },
+  <span class="hljs-attribute">shim</span>: {
+    <span class="hljs-string">'jquery'</span>: {
+      <span class="hljs-attribute">exports</span>: <span class="hljs-string">'$'</span>
+    }
+  }
+})
+
+<span class="hljs-built_in">require</span> [<span class="hljs-string">'pan_and_zoom'</span>], <span class="hljs-function"><span class="hljs-params">(examples)</span> -&gt;</span>
+  examples.example1(<span class="hljs-string">'paper1'</span>)
+  examples.example2(<span class="hljs-string">'paper2'</span>)</pre></div>
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>
