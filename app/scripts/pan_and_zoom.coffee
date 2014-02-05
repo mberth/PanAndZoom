@@ -6,20 +6,17 @@
 #<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
 
 # Here is a straight forward implementation for panning and zooming in a [paper.js](http://paperjs.org/) drawing.
-# Try it: Shift-mousewheel moves the box around,
-# Alt-mousewheel zooms in and out.
+# Try it: shift-mousewheel moves the box around,
+# alt-mousewheel zooms in and out.
 
 # <canvas id="paper1" width="600" height="300" style="background: gray;"></canvas>
 # <script data-main="../scripts/main" src="../../bower_components/requirejs/require.js"></script>
 
 # Now try to zoom in on the circle: the circle moves away from the mouse pointer
-# when zooming in. This is a result of the simple zoom algorithm we use here. You would expect
-# the drawing to zoom in around your mouse pointer, i.e. that the zoom has the point under
-# the mouse as a fixed point.
+# when zooming in. You would expect the drawing to [zoom in around your mouse pointer](#StableZoom).
 
-# By default, paper.js zooms in around the center of the view. You can try this by
-# placing the mouse on top of the small square (do not pan around, that will
-# change the center of the view).
+# By default, paper.js zooms in around the center of the view. The initial view center
+# is marked by the small square (when you pan around the center of the view changes).
 
 # The simple implementation works like this: get the mousewheel movements from the
 # [jQuery Mouse Wheel Plugin](https://github.com/brandonaaron/jquery-mousewheel).
@@ -28,13 +25,17 @@
 # [View.zoom](http://paperjs.org/reference/view/#zoom) and
 # [View.center](http://paperjs.org/reference/view/#center)).
 
-#
-define ['paper', 'jquery-mousewheel'], (paper) ->
+# Feel free to skip ahead to the [stable zoom](#StableZoom) implementation.
 
-  # Simple Pan and Zoom
-  # -------------------
+# Simple Pan and Zoom
+# -------------------
 
-  # <a name="SimplePanAndZoom"></a> A simple implementation of pan and zoom: just change the
+# <a name="SimplePanAndZoom"></a> Here is the [coffeescript](http://coffeescript.org/) code.
+
+
+define ['paper', 'jquery-mousewheel'], (paper) ->  # package as a RequireJS module
+
+  # A simple implementation of pan and zoom: just change the
   # zoom factor or the view center.
   class SimplePanAndZoom
     # The zoom and pan logic is extracted into functions that
@@ -96,16 +97,18 @@ define ['paper', 'jquery-mousewheel'], (paper) ->
     box = new paper.Path.Rectangle from: [0,0], to: [10,10], fillColor: 'gray'
     box.position = view.center
 
-
+    # Use a `SimplePanAndZoom` to translate from mouse events to changes in the view.
     panAndZoom = new SimplePanAndZoom()
 
     # We use the jquery-mousewheel plugin to get the events.
     $("##{canvasID}").mousewheel (event) ->
       if event.shiftKey
         view.center = panAndZoom.changeCenter view.center, event.deltaX, event.deltaY, event.deltaFactor
+        event.preventDefault()
       else if event.altKey
         view.zoom = panAndZoom.changeZoom view.zoom, event.deltaY
-      event.preventDefault()
+        event.preventDefault()
+
 
     # When using paper.js from javascript directly, you have to call
     # `view.draw()` to draw the scene.
@@ -115,37 +118,37 @@ define ['paper', 'jquery-mousewheel'], (paper) ->
   # <a name="StableZoom"></a>Stable Zoom
   # ------------------------------------
 
-  # Try zooming in on the circle (again Shift-mousewheel moves the box around,
-  # Alt-mousewheel zooms in and out).
+  # Try zooming in on the circle (again shift-mousewheel moves the box around,
+  # alt-mousewheel zooms in and out). The drawing zooms in around your mouse pointer.
 
   # <canvas id="paper2" width="600" height="300" style="background: gray;"></canvas>
 
-  # Now try to zoom in on the circle: the drawing zooms in around your mouse pointer.
-
   # Let's derive the formula for this systematically.
-  # The normal paper.js zoom has the center as a fixed point.
-  # Write the normal zoom transform as some function $Z$ and call the view's center point $c$.
+  # The default paper.js zoom has the view's center as a fixed point.
+  # Write the default zoom transform as some function $Z$ and call the view's center point $c$.
   # Then we have
   # $$Z(c) = c$$
-  # We want to apply the normal zoom and then correct it by a translation that makes sure
+  # We want to apply the default zoom and then correct it by a translation that makes sure
   # the point under the mouse $p$ stays where it is.
   # We are looking for a translation vector $a$ such that
   # $$Z(p) + a = p$$
   # This means that the correction has to be $a = p - Z(p)$.
 
-  # How do we get a formula for $Z$? It is a scaling that has the view center $c$ as a fixed point.
-  # This is done by shifting $c$ to the origin, then scaling by a factor $\beta$ then shifting back to $c$:
+  # How do we get a formula for the default zoom transform $Z$?
+  # It is a scaling that has the view center $c$ as a fixed point.
+  # This can be done by shifting $c$ to the origin, then scaling by a factor $\beta$ then shifting back to $c$:
   # $$Z(x) = \beta \cdot (x - c) + c$$
   # You can check that indeed $Z(c) = c$.
 
   # With that our correction becomes
   # $$a = p - Z(p) = p - \beta \cdot (p - c) - c$$
 
-
+  # Make a subclass of `SimplePanAndZoom` for stable zooming.
   class StableZoom extends SimplePanAndZoom
 
     # Compute the new zoom factor such that a given fixedPoint $p$ is unchanged.
-    # $c$ is the old view center.
+    # `oldZoom` is the current zoom factor, `delta` gives how much the mousewheel was turned
+    # $c$ is the old view center. We use the paper.js methods for computing with points (vectors).
     changeZoom: (oldZoom, delta, c, p) ->
       newZoom = super oldZoom, delta
       beta = oldZoom / newZoom
@@ -169,6 +172,7 @@ define ['paper', 'jquery-mousewheel'], (paper) ->
     drawGrid width, height
     new paper.Path.Circle center: [100, 100], radius: 20, fillColor: 'teal'
 
+    # Use a `StableZoom` to translate from mouse events to changes in the view.
     panAndZoom = new StableZoom()
 
     # We use the jquery-mousewheel plugin to get the events.
@@ -178,29 +182,20 @@ define ['paper', 'jquery-mousewheel'], (paper) ->
         event.preventDefault()
       else if event.altKey
         mousePosition = new paper.Point event.offsetX, event.offsetY
-        # `viewToProject()` is an undocumented paper.js function that converts mouse coordinates
+        # We use `viewToProject()`, an undocumented paper.js function that converts mouse coordinates
         # to project coordinates. When you use the
         # [paper.js event handling](http://paperjs.org/tutorials/interaction/creating-mouse-tools/)
         # this conversion is already done for you.
         viewPosition = view.viewToProject(mousePosition)
-        new paper.Path.Circle center: viewPosition, radius: 5, fillColor: "red", opacity: 0.01
         [newZoom, offset] = panAndZoom.changeZoom view.zoom, event.deltaY, view.center, viewPosition
         view.zoom = newZoom
         view.center = view.center.add offset
         event.preventDefault()
         view.draw()
 
-    $("##{canvasID}").click (event) ->
-      mousePosition = new paper.Point event.offsetX, event.offsetY
-      viewPosition = view.viewToProject(mousePosition)
-      console.log event
-      console.log mousePosition
-      console.log viewPosition
-
-
     # When using paper.js from javascript directly, you have to call
     # `view.draw()` to draw the scene.
     view.draw()
 
 
-  {example1: example1, example2: example2}
+  {example1: example1, example2: example2} # export examples for RequireJS
