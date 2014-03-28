@@ -2,7 +2,7 @@ PanAndZoom
 ==========
 
 CoffeeScript code to pan and zoom using the mouse wheel for paper.js, see `app/scripts/pan_and_zoom.coffee`. 
-The code is explained in [Stable Zooming and Panning in paper.js](http://matthiasberth.com/articles/stable-zoom-and-pan-in-paperjs)
+The code is explained in [Stable Zooming and Panning in paper.js](http://matthiasberth.com/articles/stable-zoom-and-pan-in-paperjs).
 
 Run
 
