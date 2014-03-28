@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>demo_03.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" media="all" href="public/stylesheets/normalize.css" />
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="page">
+
+      <div class="header">
+        
+          <h1>demo_03.coffee</h1>
+        
+
+        
+      </div>
+
+      
+        
+        <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
+
+<p>We want to rotate graphical objects at varying speeds to produce
+interesting visual effects.</p>
+
+        
+          <div class='highlight'><pre>define [<span class="string">'paper'</span>], (paper) -&gt;  <span class="comment"># package everything as a RequireJS module</span></pre></div>
+        
+      
+        
+        <h2>Rotating objects</h2>
+
+        
+      
+        
+        <p>Compute a point&#39;s position from its angle $\alpha$ and radius $r$ according to
+$$(x,y) = r \, (\cos \alpha, \sin \alpha)$$</p>
+
+        
+          <div class='highlight'><pre>  <span class="function"><span class="title">position</span></span> = (alpha, radius) -&gt;
+    [radius * Math.cos(alpha), radius * Math.sin(alpha)]</pre></div>
+        
+      
+        
+        <p>Rotate a Paper.js item around a rotation center.</p>
+
+        
+          <div class='highlight'><pre>  <span class="function"><span class="title">rotate</span></span> = (item, alpha, radius, center) -&gt;
+    item.position = position(alpha, radius)
+    item.translate center
+    item</pre></div>
+        
+      
+        
+        <h2>The animation</h2>
+
+        
+      
+        
+        
+        
+          <div class='highlight'><pre>  <span class="function"><span class="title">example</span></span> = (canvasID) -&gt;</pre></div>
+        
+      
+        
+        <p>Setup the canvas</p>
+
+        
+          <div class='highlight'><pre>    canvas = document.getElementById(canvasID)
+    paper.setup canvas</pre></div>
+        
+      
+        
+        <p>Create two circles</p>
+
+        
+          <div class='highlight'><pre>    circle1 = <span class="keyword">new</span> paper.Path.Circle center: [<span class="number">100</span>,<span class="number">100</span>], radius: <span class="number">10</span>, fillColor: <span class="string">"green"</span>
+    circle2 = <span class="keyword">new</span> paper.Path.Circle center: [<span class="number">100</span>,<span class="number">100</span>], radius: <span class="number">20</span>, fillColor: <span class="string">"indigo"</span></pre></div>
+        
+      
+        
+        <p>Rotate circles on every animation frame. The <code>paper.view.onFrame</code> function is
+called approximately 60 times per second.</p>
+
+        
+          <div class='highlight'><pre>    alpha = <span class="number">0</span>
+    paper.view.<span class="function"><span class="title">onFrame</span></span> = -&gt;
+      rotate circle1, <span class="number">1.1</span>*alpha, <span class="number">50</span>, [<span class="number">200</span>, <span class="number">100</span>]
+      rotate circle2,    -alpha, <span class="number">30</span>, [<span class="number">200</span>, <span class="number">120</span>]
+      alpha = (alpha + <span class="number">0.05</span>)</pre></div>
+        
+      
+        
+        <canvas id="paper1" width="400" height="200" style="background: lightgray;"></canvas>
+
+<p>Return the example as a function that can be used via RequireJS.</p>
+
+        
+          <div class='highlight'><pre>  example</pre></div>
+        
+      
+        
+        <script data-main="../scripts/demo_main" src="../../bower_components/requirejs/require.js"></script>
+
+        
+      
+      <div class="fleur">h</div>
+    </div>
+  </div>
+</body>
+</html>
