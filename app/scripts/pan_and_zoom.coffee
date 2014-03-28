@@ -1,7 +1,3 @@
-# Pan and Zoom
-# ------------
-# <p class="lead">Smooth panning and zooming in <a href="http://paperjs.org/">paper.js</a></p>
-
 #<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 #<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});</script>
 
@@ -12,11 +8,13 @@
 # <canvas id="paper1" width="600" height="300" style="background: gray;"></canvas>
 # <script data-main="../scripts/main" src="../../bower_components/requirejs/require.js"></script>
 
-# Now try to zoom in on the circle: the circle moves away from the mouse pointer
-# when zooming in. You would expect the drawing to [zoom in around your mouse pointer](#StableZoom).
+# Now try to zoom in on the circle -- the circle moves away from the mouse pointer.
+# You would expect the drawing to zoom in around your mouse pointer, as is shown
+# in the [stable zoom](#StableZoom) example below.
 
 # By default, paper.js zooms in around the center of the view. The initial view center
-# is marked by the small square (when you pan around the center of the view changes).
+# is marked by the small square. When you pan around the center of the view changes,
+# try zooming in and out after panning.
 
 # The simple implementation works like this: get the mousewheel movements from the
 # [jQuery Mouse Wheel Plugin](https://github.com/brandonaaron/jquery-mousewheel).
@@ -25,12 +23,15 @@
 # [View.zoom](http://paperjs.org/reference/view/#zoom) and
 # [View.center](http://paperjs.org/reference/view/#center)).
 
-# Feel free to skip ahead to the [stable zoom](#StableZoom) implementation.
+# By the way: this post
+# shows [coffeescript](http://coffeescript.org/) code, mixed with explanations and working examples such as
+# the one above.
+# It was generated from a single [coffeescript input file](https://github.com/mberth/PanAndZoom/blob/master/app/scripts/pan_and_zoom.coffee)
+# with [docco](http://jashkenas.github.io/docco/). I'll explain in detail how this works in a
+# forthcoming blog post.
 
-# Simple Pan and Zoom
-# -------------------
-
-# <a name="SimplePanAndZoom"></a> Here is the [coffeescript](http://coffeescript.org/) code.
+# <a name="SimplePanAndZoom"></a>Simple Panning and Zooming
+# --------------------------
 
 
 define ['paper', 'jquery-mousewheel'], (paper) ->  # package as a RequireJS module
@@ -197,5 +198,5 @@ define ['paper', 'jquery-mousewheel'], (paper) ->  # package as a RequireJS modu
     # `view.draw()` to draw the scene.
     view.draw()
 
-
-  {example1: example1, example2: example2} # export examples for RequireJS
+  # Finally, make the examples available via RequireJS.
+  {example1: example1, example2: example2}

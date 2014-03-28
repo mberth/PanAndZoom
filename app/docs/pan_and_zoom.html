@@ -23,6 +23,34 @@
               
                 
                 <li>
+                  <a class="source" href="demo_01.html">
+                    demo_01.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
+                  <a class="source" href="demo_02.html">
+                    demo_02.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
+                  <a class="source" href="demo_03.html">
+                    demo_03.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
+                  <a class="source" href="demo_main.html">
+                    demo_main.coffee
+                  </a>
+                </li>
+              
+                
+                <li>
                   <a class="source" href="main.html">
                     main.coffee
                   </a>
@@ -40,16 +68,6 @@
         
       </div>
 
-      
-        
-        <h2 id="pan-and-zoom">Pan and Zoom</h2>
-
-        
-      
-        
-        <p class="lead">Smooth panning and zooming in <a href="http://paperjs.org/">paper.js</a></p>
-
-        
       
         
         <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
@@ -71,14 +89,16 @@ alt-mousewheel zooms in and out.</p>
         
       
         
-        <p>Now try to zoom in on the circle: the circle moves away from the mouse pointer
-when zooming in. You would expect the drawing to <a href="#StableZoom">zoom in around your mouse pointer</a>.</p>
+        <p>Now try to zoom in on the circle — the circle moves away from the mouse pointer.
+You would expect the drawing to zoom in around your mouse pointer, as is shown
+in the <a href="#StableZoom">stable zoom</a> example below.</p>
 
         
       
         
         <p>By default, paper.js zooms in around the center of the view. The initial view center
-is marked by the small square (when you pan around the center of the view changes).</p>
+is marked by the small square. When you pan around the center of the view changes,
+try zooming in and out after panning.</p>
 
         
       
@@ -93,22 +113,22 @@ Then use <code>paper.view.center = (x,y)</code> to move around, and
         
       
         
-        <p>Feel free to skip ahead to the <a href="#StableZoom">stable zoom</a> implementation.</p>
+        <p>By the way: this post
+shows <a href="http://coffeescript.org/">coffeescript</a> code, mixed with explanations and working examples such as
+the one above.
+It was generated from a single <a href="https://github.com/mberth/PanAndZoom/blob/master/app/scripts/pan_and_zoom.coffee">coffeescript input file</a>
+with <a href="http://jashkenas.github.io/docco/">docco</a>. I’ll explain in detail how this works in a
+forthcoming blog post.</p>
 
         
       
         
-        <h2 id="simple-pan-and-zoom">Simple Pan and Zoom</h2>
+        <h2 id="-a-name-simplepanandzoom-a-simple-panning-and-zooming"><a name="SimplePanAndZoom"></a>Simple Panning and Zooming</h2>
 
         
       
         
         
-        
-      
-        
-        <p><a name="SimplePanAndZoom"></a> Here is the <a href="http://coffeescript.org/">coffeescript</a> code.</p>
-
         
           <div class='highlight'><pre>
 
@@ -408,10 +428,14 @@ this conversion is already done for you.</p>
 <code>view.draw()</code> to draw the scene.</p>
 
         
-          <div class='highlight'><pre>    view.draw()
+          <div class='highlight'><pre>    view.draw()</pre></div>
+        
+      
+        
+        <p>Finally, make the examples available via RequireJS.</p>
 
-
-  {<span class="hljs-attribute">example1</span>: example1, <span class="hljs-attribute">example2</span>: example2} <span class="hljs-comment"># export examples for RequireJS</span></pre></div>
+        
+          <div class='highlight'><pre>  {<span class="hljs-attribute">example1</span>: example1, <span class="hljs-attribute">example2</span>: example2}</pre></div>
         
       
       <div class="fleur">h</div>
